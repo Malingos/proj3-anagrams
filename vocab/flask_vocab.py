@@ -50,7 +50,25 @@ def index():
     assert flask.session["target_count"] > 0
     app.logger.debug("At least one seems to be set correctly")
     return flask.render_template('vocab.html')
-
+#@app.route("/_checkword")
+#def checkword():
+#    text = flask.request.args.get("text", type=str)
+#    reslt = [False, False]
+#    jumble = flask.session["jumble"]
+#    matches = flask.session.get("matches", [])
+#    in_jumble = LetterBag(jumble).contains(text)
+#    matched = WORDS.has(text)
+#    if matched and in_jumble and not (text in matches):
+#        reslt[0] = True
+#        matches.append(text)
+#    if len(matches) == 3:
+#        reslt[1] = True
+    #    matches.append(text)
+    #elif text in matches
+#    if text in WORDS:
+#        reslt = True
+#    rslt = {"is_word": reslt[0], "is_enough": reslt[1]}
+#    return flask.jsonify(result=rslt)
 
 @app.route("/keep_going")
 def keep_going():
@@ -74,7 +92,7 @@ def success():
 #######################
 
 
-@app.route("/_check", methods=["POST"])
+@app.route("/_check")#, methods=["POST"])
 def check():
     """
     User has submitted the form with a word ('attempt')
@@ -87,10 +105,10 @@ def check():
     app.logger.debug("Entering check")
 
     # The data we need, from form and from cookie
-    text = flask.request.form["attempt"]
+    text = flask.request.args.get("text", type=str)
     jumble = flask.session["jumble"]
     matches = flask.session.get("matches", [])  # Default to empty list
-
+    myList = [False, False]
     # Is it good?
     in_jumble = LetterBag(jumble).contains(text)
     matched = WORDS.has(text)
@@ -100,22 +118,29 @@ def check():
         # Cool, they found a new word
         matches.append(text)
         flask.session["matches"] = matches
-    elif text in matches:
-        flask.flash("You already found {}".format(text))
-    elif not matched:
-        flask.flash("{} isn't in the list of words".format(text))
-    elif not in_jumble:
-        flask.flash(
-            '"{}" can\'t be made from the letters {}'.format(text, jumble))
-    else:
-        app.logger.debug("This case shouldn't happen!")
-        assert False  # Raises AssertionError
+        myList[0] = True
+        #myList[1] = len(matches)
+        #myList[2] = True
+        if flask.session["target_count"] == len(matches):
+            myList[1] = True
+    #elif text in matches:
+        #flask.flash("You already found {}".format(text))
+    #elif not matched:
+        #flask.flash("{} isn't in the list of words".format(text))
+    #elif not in_jumble:
+        #flask.flash(
+        #    '"{}" can\'t be made from the letters {}'.format(text, jumble))
+    #else:
+    #    app.logger.debug("This case shouldn't happen!")
+    #    assert False  # Raises AssertionError
 
+    rslt = {"is_word": myList[0], "is_full": myList[1]}
+    return flask.jsonify(result = rslt)
     # Choose page:  Solved enough, or keep going?
-    if len(matches) >= flask.session["target_count"]:
-       return flask.redirect(flask.url_for("success"))
-    else:
-       return flask.redirect(flask.url_for("keep_going"))
+#    if len(matches) >= flask.session["target_count"]:
+#       return flask.redirect(flask.url_for("success"))
+#    else:
+#       return flask.redirect(flask.url_for("keep_going"))
 
 ###############
 # AJAX request handlers

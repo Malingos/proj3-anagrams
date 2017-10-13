@@ -84,10 +84,55 @@
     <label for="attempt">Word:</label>
     <input id="attempt" name="attempt" type="text" width="15"
       autocomplete="off"  autofocus />
-    <input type="submit" name="try" />
+    <!--<input type="submit" name="try" />-->
   </form>
-</div></div>
+</div>
+<p id="words">Matches:</p>
+<script>
+//var matchNumber = 0;
+$("entry").submit( function(event) {
+    event.preventDefault();
+ });//prevent me from pressing enter to sumbit the result
 
+//each keystroke, need to check if word in input field is correct
+//first, get the keystroke and make sure that it is a letter(so rule out non letters)
+
+$("#attempt").keyup(function(event){
+    var txt = $("#attempt").val(); //what is in input field
+    var keycode = event.which; //the key that went up
+    var letter = String.fromCharCode(keycode);    
+//rule out non letters
+    if (! "ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(letter)) { return }
+    console.log("Letter: "  + letter);
+    $.getJSON( "/_check", {text: txt },
+            function(data) {
+                rsval = data.result.is_word;
+                isFull = data.result.is_full;
+                console.log("rsval: " + rsval)
+                if (rsval){
+                    //matchNumber += 1;
+                    if (isFull){
+                        var url = document.URL;
+                        window.location.assign("/success");
+                        //window.location = document.URL + "/success.html";
+////                        $("#response").html("You are finished!");
+                    }
+                    else{
+//                        $("#responise").html("One word down!");
+                        $(words).append(txt);
+                        //$("#message").html("One Word Down");
+                        $("#attempt").val("");
+                    }
+                } else {
+//                      $("#response").html("Not there yet!")
+                }
+            }
+
+             );
+
+    });
+
+</script>
 <br />
 
 {% if session.matches|length is not equalto 0  %}
@@ -108,7 +153,10 @@
     {% endfor %}
   {% endif %}
 {% endwith %}
-
+<!--
+//$("attempt").submit( function(event){
+//   event.preventDefault();
+// });-->
 
 
  </div> <!-- container -->
